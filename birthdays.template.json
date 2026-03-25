@@ -1,0 +1,7 @@
+{
+  "birthdays": [
+    { "name": "Jane Doe", "month": 3, "day": 15 },
+    { "name": "John Smith", "month": 7, "day": 22 },
+    { "name": "Mom", "month": 12, "day": 1 }
+  ]
+}
