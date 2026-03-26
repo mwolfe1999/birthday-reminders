@@ -139,11 +139,39 @@ The scheduled task is a Claude skill file stored at:
 ```
 
 Every day at 9 AM, Claude:
-1. Reads `birthdays.json` from disk
-2. Runs `date` commands in bash to get today's date and the date 7 days out
-3. Compares each birthday against both dates
-4. Sends iMessages via the Read and Send iMessages MCP connector (only if there's a match)
-5. Does nothing if no birthdays are coming up
+1. Checks `.birthday-log.json` to see if today has already been processed (prevents duplicate texts)
+2. Reads `birthdays.json` from disk
+3. Runs `date` commands in bash to get today's date and the date 7 days out
+4. Compares each birthday against both dates
+5. Sends iMessages via the Read and Send iMessages MCP connector (only if there's a match)
+6. Writes today's date to the log file
+7. Checks if yesterday was missed — if so, sends catch-up reminders prefixed with "⚠️ Missed yesterday:"
+8. Does nothing if no birthdays are coming up
+
+## Reliability
+
+Since the scheduled task runs locally on your Mac, it won't fire if your laptop is asleep or powered off. Two mitigations:
+
+### Auto-wake schedule
+
+Use `pmset` to wake your Mac one minute before the task:
+
+```bash
+sudo pmset repeat wakeorpoweron MTWRFSU 08:59:00
+```
+
+Verify with `pmset -g sched`. Also make sure your sleep timer gives the task enough time to complete:
+
+```bash
+sudo pmset -a sleep 10
+```
+
+### Dedup and catch-up
+
+The task writes a `.birthday-log.json` file after each successful run. This provides:
+
+- **Deduplication**: if the task runs multiple times in one day (e.g., you trigger it manually), it won't send duplicate texts
+- **Catch-up**: if the task missed an entire day, the next run detects the gap and sends yesterday's reminders with a warning prefix
 
 ## Customization ideas
 
