@@ -138,7 +138,7 @@ The scheduled task is a Claude skill file stored at:
 ~/Documents/Claude/Scheduled/birthday-reminders/SKILL.md
 ```
 
-Every day at 9 AM, Claude:
+Every day at 9 AM (with a backup run at noon), Claude:
 1. Checks `.birthday-log.json` to see if today has already been processed (prevents duplicate texts)
 2. Reads `birthdays.json` from disk
 3. Runs `date` commands in bash to get today's date and the date 7 days out
