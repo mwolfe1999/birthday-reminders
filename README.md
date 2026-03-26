@@ -95,6 +95,42 @@ If you already have birthdays stored in a text-based service (like a text chain 
 
 This same approach works for any text-based birthday data source.
 
+## Importing from Facebook
+
+You can bulk-import your Facebook friends' birthdays using Claude Code with a browser automation tool (like the Chrome DevTools MCP server). Facebook's birthdays page (`facebook.com/friends/birthdays`) only shows individual dates for the current month — but the underlying GraphQL API has all 12 months.
+
+### How it works
+
+1. Log into Facebook in Chrome and navigate to `facebook.com/friends/birthdays`
+2. Claude extracts the `fb_dtsg` token and the `BirthdayCometContentQuery` query ID from the page's embedded JSON
+3. For each month offset (0–11), Claude makes a GraphQL request to `/api/graphql/` with:
+   ```json
+   {
+     "offset_month": 0,
+     "scale": 2,
+     "stream_birthday_months": true
+   }
+   ```
+4. Each response contains friend nodes with `"name"` and `"birthdate": {"day": N, "month": N}` fields
+5. Claude splits on `"node":{` boundaries and pairs each name with its birthdate
+6. Results are deduplicated across all 12 requests and sorted by date
+
+### Deduplication
+
+When merging Facebook birthdays into an existing `birthdays.json`, Claude:
+
+- **Exact match** (same name + date): skips the entry
+- **Same date, similar name** (e.g., "Kieran" vs "Kieran Bondy"): updates the existing entry with the full Facebook name
+- **Similar name, different date**: flags as a potential conflict for you to resolve
+- **No match**: adds as a new entry
+
+### Steps
+
+1. Open Facebook's birthdays page in Chrome while logged in
+2. Ask Claude Code (with Chrome DevTools MCP access) to pull down your Facebook birthdays
+3. Claude exports a CSV you can review — mark entries with "x" in the `Add?` column
+4. Claude reads back your selections, deduplicates against your existing list, and merges
+
 ## How it works under the hood
 
 The scheduled task is a Claude skill file stored at:
